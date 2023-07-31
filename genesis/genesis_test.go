@@ -1,3 +1,13 @@
+// Copyright (C) 2022-2023, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -35,22 +45,26 @@ func TestValidateConfig(t *testing.T) {
 		config    *Config
 		err       string
 	}{
-		"mainnet": {
-			networkID: 1,
-			config:    &MainnetConfig,
+		"camino": {
+			networkID: 1000,
+			config:    &CaminoConfig,
 		},
-		"fuji": {
-			networkID: 5,
-			config:    &FujiConfig,
+		"columbus": {
+			networkID: 1001,
+			config:    &ColumbusConfig,
+		},
+		"kopernikus": {
+			networkID: 1002,
+			config:    &KopernikusConfig,
 		},
 		"local": {
 			networkID: 12345,
 			config:    &LocalConfig,
 		},
-		"mainnet (networkID mismatch)": {
-			networkID: 2,
-			config:    &MainnetConfig,
-			err:       "networkID 2 specified but genesis config contains networkID 1",
+		"camino (networkID mismatch)": {
+			networkID: 999,
+			config:    &CaminoConfig,
+			err:       "networkID 999 specified but genesis config contains networkID 1000",
 		},
 		"invalid start time": {
 			networkID: 12345,
@@ -116,10 +130,10 @@ func TestValidateConfig(t *testing.T) {
 			err: "duplicated in initial staked funds",
 		},
 		"initial staked funds not in allocations": {
-			networkID: 5,
+			networkID: 12345,
 			config: func() *Config {
-				thisConfig := FujiConfig
-				thisConfig.InitialStakedFunds = append(thisConfig.InitialStakedFunds, LocalConfig.InitialStakedFunds[0])
+				thisConfig := LocalConfig
+				thisConfig.InitialStakedFunds = append(thisConfig.InitialStakedFunds, ids.GenerateTestShortID())
 				return &thisConfig
 			}(),
 			err: "does not have an allocation to stake",
@@ -166,20 +180,20 @@ func TestGenesisFromFile(t *testing.T) {
 		err             string
 		expected        string
 	}{
-		"mainnet": {
-			networkID:    constants.MainnetID,
+		"camino": {
+			networkID:    constants.CaminoID,
 			customConfig: customGenesisConfigJSON,
-			err:          "cannot override genesis config for standard network mainnet (1)",
+			err:          "cannot override genesis config for standard network camino (1000)",
 		},
-		"fuji": {
-			networkID:    constants.FujiID,
+		"columbus": {
+			networkID:    constants.ColumbusID,
 			customConfig: customGenesisConfigJSON,
-			err:          "cannot override genesis config for standard network fuji (5)",
+			err:          "cannot override genesis config for standard network columbus (1001)",
 		},
-		"fuji (with custom specified)": {
-			networkID:    constants.FujiID,
+		"columbus (with custom specified)": {
+			networkID:    constants.ColumbusID,
 			customConfig: localGenesisConfigJSON, // won't load
-			err:          "cannot override genesis config for standard network fuji (5)",
+			err:          "cannot override genesis config for standard network columbus (1001)",
 		},
 		"local": {
 			networkID:    constants.LocalID,
@@ -194,7 +208,7 @@ func TestGenesisFromFile(t *testing.T) {
 		"custom": {
 			networkID:    9999,
 			customConfig: customGenesisConfigJSON,
-			expected:     "a1d1838586db85fe94ab1143560c3356df9ba2445794b796bba050be89f4fcb4",
+			expected:     "515619ced6ead0ebbdf4b565df264575915f63565701dbf7552d4061039babc8",
 		},
 		"custom (networkID mismatch)": {
 			networkID:    9999,
@@ -252,13 +266,17 @@ func TestGenesisFromFlag(t *testing.T) {
 		err          string
 		expected     string
 	}{
-		"mainnet": {
-			networkID: constants.MainnetID,
-			err:       "cannot override genesis config for standard network mainnet (1)",
+		"camino": {
+			networkID: constants.CaminoID,
+			err:       "cannot override genesis config for standard network camino (1000)",
 		},
-		"fuji": {
-			networkID: constants.FujiID,
-			err:       "cannot override genesis config for standard network fuji (5)",
+		"columbus": {
+			networkID: constants.ColumbusID,
+			err:       "cannot override genesis config for standard network columbus (1001)",
+		},
+		"kopernikus": {
+			networkID: constants.KopernikusID,
+			err:       "cannot override genesis config for standard network kopernikus (1002)",
 		},
 		"local": {
 			networkID: constants.LocalID,
@@ -272,7 +290,7 @@ func TestGenesisFromFlag(t *testing.T) {
 		"custom": {
 			networkID:    9999,
 			customConfig: customGenesisConfigJSON,
-			expected:     "a1d1838586db85fe94ab1143560c3356df9ba2445794b796bba050be89f4fcb4",
+			expected:     "515619ced6ead0ebbdf4b565df264575915f63565701dbf7552d4061039babc8",
 		},
 		"custom (networkID mismatch)": {
 			networkID:    9999,
@@ -300,11 +318,14 @@ func TestGenesisFromFlag(t *testing.T) {
 				// try loading a default config
 				var err error
 				switch test.networkID {
-				case constants.MainnetID:
-					genBytes, err = json.Marshal(&MainnetConfig)
+				case constants.CaminoID:
+					genBytes, err = json.Marshal(&CaminoConfig)
 					require.NoError(err)
 				case constants.TestnetID:
-					genBytes, err = json.Marshal(&FujiConfig)
+					genBytes, err = json.Marshal(&ColumbusConfig)
+					require.NoError(err)
+				case constants.KopernikusID:
+					genBytes, err = json.Marshal(&KopernikusConfig)
 					require.NoError(err)
 				case constants.LocalID:
 					genBytes, err = json.Marshal(&LocalConfig)
@@ -341,15 +362,27 @@ func TestGenesis(t *testing.T) {
 	}{
 		{
 			networkID:  constants.MainnetID,
-			expectedID: "UUvXi6j7QhVvgpbKM89MP5HdrxKm9CaJeHc187TsDNf8nZdLk",
+			expectedID: "2eP2teFA41Pb61nQyQYJY38onkCqkrJDPSVeQz8v9ahbEma18S",
 		},
 		{
 			networkID:  constants.FujiID,
-			expectedID: "MSj6o9TpezwsQx4Tv7SHqpVvCbJ8of1ikjsqPZ1bKRjc9zBy3",
+			expectedID: "2fAKF9ph6o4jxr12QVWmbww8dVfkNKepBt547QFEJ5eyD9x2Z9",
+		},
+		{
+			networkID:  constants.CaminoID,
+			expectedID: "23SLkqz8fHUhV963jPKVTw5v4yoWi9WAaBkAwmgVKVpnPKeiDs",
+		},
+		{
+			networkID:  constants.ColumbusID,
+			expectedID: "2gjCDJT8RDcj7o47LGwgPDtLMgwGcobhjwp8gBzrydmYAkkjtf",
+		},
+		{
+			networkID:  constants.KopernikusID,
+			expectedID: "2ZzQb7uQzm5M7Ty59i7L9HHP2hDXVtX4Tp5UWMzsfx4TUqMAK3",
 		},
 		{
 			networkID:  constants.LocalID,
-			expectedID: "hBbtNFKLpjuKti32L5bnfZ2vspABkN268t8FincYhQWnWLHxw",
+			expectedID: "294HrmVEniYX2mrvLjww9AmpV9NZnFhEi6eRrCsAzxZ2PkvdVb",
 		},
 	}
 	for _, test := range tests {
@@ -376,28 +409,41 @@ func TestVMGenesis(t *testing.T) {
 		vmTest    []vmTest
 	}{
 		{
-			networkID: constants.MainnetID,
+			networkID: constants.CaminoID,
 			vmTest: []vmTest{
 				{
 					vmID:       constants.AVMID,
-					expectedID: "2oYMBNV4eNHyqk2fjjV5nVQLDbtmNJzq5s3qs3Lo6ftnC6FByM",
+					expectedID: "yMQo4UEa2Gkk6aSmifkUuBsystV1iu1NppatvoYz6yCDnRjiq",
 				},
 				{
 					vmID:       constants.EVMID,
-					expectedID: "2q9e4r6Mu3U68nU1fYjgbR6JvwrRx36CohpAX5UQxse55x1Q5",
+					expectedID: "RinAZCjd5Dm4wk1FBWiXiiSW2VZkjzgNyR7nNBRkuCvG9zRkJ",
 				},
 			},
 		},
 		{
-			networkID: constants.FujiID,
+			networkID: constants.ColumbusID,
 			vmTest: []vmTest{
 				{
 					vmID:       constants.AVMID,
-					expectedID: "2JVSBoinj9C2J33VntvzYtVJNZdN2NKiwwKjcumHUWEb5DbBrm",
+					expectedID: "CVovNnhBXyrvZtfGBvh3rndjCmMfMdFwQPd3S3CEjPuCkJPDP",
 				},
 				{
 					vmID:       constants.EVMID,
-					expectedID: "yH8D7ThNJkxmtkuv2jgBa4P1Rn3Qpr4pPr7QYNfcdoS6k6HWp",
+					expectedID: "2avDgyQpecb3vQvMpUvJv75Hphn6o3Ms79FD4Rjqf7jJ1ZY7Qe",
+				},
+			},
+		},
+		{
+			networkID: constants.KopernikusID,
+			vmTest: []vmTest{
+				{
+					vmID:       constants.AVMID,
+					expectedID: "2vWvKYWPer37aW2Mu7FvQD8LtLsh4gcu3d2fKkCHue2QLeqvWM",
+				},
+				{
+					vmID:       constants.EVMID,
+					expectedID: "TKWj11JpGAfnVzEfVXVKeE1WHCHzBNapjoFzWLQe6gQApQ3F2",
 				},
 			},
 		},
@@ -450,12 +496,16 @@ func TestAVAXAssetID(t *testing.T) {
 		expectedID string
 	}{
 		{
-			networkID:  constants.MainnetID,
-			expectedID: "FvwEAhmxKfeiG8SnEvq42hc6whRyY3EFYAvebMqDNDGCgxN5Z",
+			networkID:  constants.CaminoID,
+			expectedID: "2LgYQ5nWZgiwYFVpSoDPma5e3A4GsehYsbCge9eH8Z1149Ca5b",
 		},
 		{
-			networkID:  constants.FujiID,
-			expectedID: "U8iRqJoiJm8xZHAacmvYyZVwqQx6uDNtQeP3CQ6fcgQk3JqnK",
+			networkID:  constants.ColumbusID,
+			expectedID: "2qD5UA8E5a3rCyVGrxWHp4pwP14d8WicgCfM9KzdyWQ6AyK3w8",
+		},
+		{
+			networkID:  constants.KopernikusID,
+			expectedID: "gbs1MNJvvs493dvRb6M8E2k3BjJ9FXSYmcc6QWu9PZTeFMatb",
 		},
 		{
 			networkID:  constants.LocalID,

@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -90,10 +100,12 @@ func (e *AtomicTxExecutor) atomicTx(tx txs.UnsignedTx) error {
 	}
 	e.OnAccept = onAccept
 
-	executor := StandardTxExecutor{
-		Backend: e.Backend,
-		State:   e.OnAccept,
-		Tx:      e.Tx,
+	executor := CaminoStandardTxExecutor{
+		StandardTxExecutor{
+			Backend: e.Backend,
+			State:   e.OnAccept,
+			Tx:      e.Tx,
+		},
 	}
 	err = tx.Visit(&executor)
 	e.Inputs = executor.Inputs

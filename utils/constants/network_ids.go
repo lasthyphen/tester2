@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -14,32 +24,34 @@ import (
 // Const variables to be exported
 const (
 	MainnetID uint32 = 1
-	CascadeID uint32 = 2
-	DenaliID  uint32 = 3
-	EverestID uint32 = 4
 	FujiID    uint32 = 5
 
-	TestnetID  uint32 = FujiID
+	CaminoID     uint32 = 1000
+	ColumbusID   uint32 = 1001
+	KopernikusID uint32 = 1002
+
+	TestnetID  uint32 = ColumbusID
 	UnitTestID uint32 = 10
 	LocalID    uint32 = 12345
 
-	MainnetName  = "mainnet"
-	CascadeName  = "cascade"
-	DenaliName   = "denali"
-	EverestName  = "everest"
-	FujiName     = "fuji"
-	TestnetName  = "testnet"
-	UnitTestName = "testing"
-	LocalName    = "local"
+	MainnetName = "mainnet"
+	FujiName    = "fuji"
 
-	MainnetHRP  = "avax"
-	CascadeHRP  = "cascade"
-	DenaliHRP   = "denali"
-	EverestHRP  = "everest"
-	FujiHRP     = "fuji"
-	UnitTestHRP = "testing"
-	LocalHRP    = "local"
-	FallbackHRP = "custom"
+	CaminoName     = "camino"
+	ColumbusName   = "columbus"
+	KopernikusName = "kopernikus"
+	TestnetName    = "testnet"
+	UnitTestName   = "testing"
+	LocalName      = "local"
+
+	MainnetHRP    = "avax"
+	FujiHRP       = "fuji"
+	CaminoHRP     = "camino"
+	ColumbusHRP   = "columbus"
+	KopernikusHRP = "kopernikus"
+	UnitTestHRP   = "testing"
+	LocalHRP      = "local"
+	FallbackHRP   = "custom"
 )
 
 // Variables to be exported
@@ -48,42 +60,42 @@ var (
 	PlatformChainID  = ids.Empty
 
 	NetworkIDToNetworkName = map[uint32]string{
-		MainnetID:  MainnetName,
-		CascadeID:  CascadeName,
-		DenaliID:   DenaliName,
-		EverestID:  EverestName,
-		FujiID:     FujiName,
-		UnitTestID: UnitTestName,
-		LocalID:    LocalName,
+		MainnetID:    MainnetName,
+		FujiID:       FujiName,
+		CaminoID:     CaminoName,
+		ColumbusID:   ColumbusName,
+		KopernikusID: KopernikusName,
+		UnitTestID:   UnitTestName,
+		LocalID:      LocalName,
 	}
 	NetworkNameToNetworkID = map[string]uint32{
-		MainnetName:  MainnetID,
-		CascadeName:  CascadeID,
-		DenaliName:   DenaliID,
-		EverestName:  EverestID,
-		FujiName:     FujiID,
-		TestnetName:  TestnetID,
-		UnitTestName: UnitTestID,
-		LocalName:    LocalID,
+		MainnetName:    MainnetID,
+		FujiName:       FujiID,
+		CaminoName:     CaminoID,
+		ColumbusName:   ColumbusID,
+		KopernikusName: KopernikusID,
+		TestnetName:    TestnetID,
+		UnitTestName:   UnitTestID,
+		LocalName:      LocalID,
 	}
 
 	NetworkIDToHRP = map[uint32]string{
-		MainnetID:  MainnetHRP,
-		CascadeID:  CascadeHRP,
-		DenaliID:   DenaliHRP,
-		EverestID:  EverestHRP,
-		FujiID:     FujiHRP,
-		UnitTestID: UnitTestHRP,
-		LocalID:    LocalHRP,
+		MainnetID:    MainnetHRP,
+		FujiID:       FujiHRP,
+		CaminoID:     CaminoHRP,
+		ColumbusID:   ColumbusHRP,
+		KopernikusID: KopernikusHRP,
+		UnitTestID:   UnitTestHRP,
+		LocalID:      LocalHRP,
 	}
 	NetworkHRPToNetworkID = map[string]uint32{
-		MainnetHRP:  MainnetID,
-		CascadeHRP:  CascadeID,
-		DenaliHRP:   DenaliID,
-		EverestHRP:  EverestID,
-		FujiHRP:     FujiID,
-		UnitTestHRP: UnitTestID,
-		LocalHRP:    LocalID,
+		MainnetHRP:    MainnetID,
+		FujiHRP:       FujiID,
+		CaminoHRP:     CaminoID,
+		ColumbusHRP:   ColumbusID,
+		KopernikusHRP: KopernikusID,
+		UnitTestHRP:   UnitTestID,
+		LocalHRP:      LocalID,
 	}
 
 	ValidNetworkPrefix = "network-"
@@ -122,4 +134,12 @@ func NetworkID(networkName string) (uint32, error) {
 		return 0, fmt.Errorf("failed to parse %q as a network name", networkName)
 	}
 	return uint32(id), nil
+}
+
+func IsActiveNetwork(networkID uint32) bool {
+	return networkID == MainnetID ||
+		networkID == FujiID ||
+		networkID == ColumbusID ||
+		networkID == CaminoID ||
+		networkID == KopernikusID
 }

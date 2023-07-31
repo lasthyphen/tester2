@@ -1,3 +1,13 @@
+// Copyright (C) 2022-2023, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -103,7 +113,7 @@ type VM struct {
 	// sliding window of blocks that were recently accepted
 	recentlyAccepted window.Window[ids.ID]
 
-	txBuilder         txbuilder.Builder
+	txBuilder         txbuilder.CaminoBuilder
 	txExecutorBackend *txexecutor.Backend
 	manager           blockexecutor.Manager
 }
@@ -138,8 +148,8 @@ func (vm *VM) Initialize(
 	vm.ctx = chainCtx
 	vm.dbManager = dbManager
 
-	vm.codecRegistry = linearcodec.NewDefault()
-	vm.fx = &secp256k1fx.Fx{}
+	vm.codecRegistry = linearcodec.NewCaminoDefault()
+	vm.fx = &secp256k1fx.CaminoFx{}
 	if err := vm.fx.Initialize(vm); err != nil {
 		return err
 	}
@@ -168,11 +178,20 @@ func (vm *VM) Initialize(
 	}
 
 	vm.atomicUtxosManager = avax.NewAtomicUTXOManager(chainCtx.SharedMemory, txs.Codec)
-	utxoHandler := utxo.NewHandler(vm.ctx, &vm.clock, vm.state, vm.fx)
+
+	camCfg, _ := vm.state.CaminoConfig()
+	utxoHandler := utxo.NewCaminoHandler(
+		vm.ctx,
+		&vm.clock,
+		vm.state,
+		vm.fx,
+		camCfg != nil && camCfg.LockModeBondDeposit,
+	)
+
 	vm.uptimeManager = uptime.NewManager(vm.state)
 	vm.UptimeLockedCalculator.SetCalculator(&vm.bootstrapped, &chainCtx.Lock, vm.uptimeManager)
 
-	vm.txBuilder = txbuilder.New(
+	vm.txBuilder = txbuilder.NewCamino(
 		vm.ctx,
 		&vm.Config,
 		&vm.clock,
@@ -207,7 +226,7 @@ func (vm *VM) Initialize(
 		vm.txExecutorBackend,
 		vm.recentlyAccepted,
 	)
-	vm.Builder = blockbuilder.New(
+	vm.Builder = blockbuilder.CaminoNew(
 		mempool,
 		vm.txBuilder,
 		vm.txExecutorBackend,
@@ -393,6 +412,10 @@ func (vm *VM) ParseBlock(_ context.Context, b []byte) (snowman.Block, error) {
 	return vm.manager.NewBlock(statelessBlk), nil
 }
 
+func (vm *VM) GetFeeAssetID() ids.ID {
+	return vm.ctx.AVAXAssetID
+}
+
 func (vm *VM) GetBlock(_ context.Context, blkID ids.ID) (snowman.Block, error) {
 	return vm.manager.GetBlock(blkID)
 }
@@ -422,9 +445,11 @@ func (vm *VM) CreateHandlers(context.Context) (map[string]*common.HTTPHandler, e
 	server.RegisterInterceptFunc(vm.metrics.InterceptRequest)
 	server.RegisterAfterFunc(vm.metrics.AfterRequest)
 	if err := server.RegisterService(
-		&Service{
-			vm:          vm,
-			addrManager: avax.NewAddressManager(vm.ctx),
+		&CaminoService{
+			Service: Service{
+				vm:          vm,
+				addrManager: avax.NewAddressManager(vm.ctx),
+			},
 		},
 		"platform",
 	); err != nil {

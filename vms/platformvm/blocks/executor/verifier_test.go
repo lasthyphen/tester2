@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -73,7 +83,7 @@ func TestVerifierVisitProposalBlock(t *testing.T) {
 	}
 
 	blkTx := txs.NewMockUnsignedTx(ctrl)
-	blkTx.EXPECT().Visit(gomock.AssignableToTypeOf(&executor.ProposalTxExecutor{})).Return(nil).Times(1)
+	blkTx.EXPECT().Visit(gomock.AssignableToTypeOf(&executor.CaminoProposalTxExecutor{})).Return(nil).Times(1)
 
 	// We can't serialize [blkTx] because it isn't
 	// registered with the blocks.Codec.
@@ -263,8 +273,8 @@ func TestVerifierVisitStandardBlock(t *testing.T) {
 			},
 		},
 	}
-	blkTx.EXPECT().Visit(gomock.AssignableToTypeOf(&executor.StandardTxExecutor{})).DoAndReturn(
-		func(e *executor.StandardTxExecutor) error {
+	blkTx.EXPECT().Visit(gomock.AssignableToTypeOf(&executor.CaminoStandardTxExecutor{})).DoAndReturn(
+		func(e *executor.CaminoStandardTxExecutor) error {
 			e.OnAccept = func() {}
 			e.Inputs = set.Set[ids.ID]{}
 			e.AtomicRequests = atomicRequests
@@ -749,8 +759,8 @@ func TestVerifierVisitStandardBlockWithDuplicateInputs(t *testing.T) {
 			},
 		},
 	}
-	blkTx.EXPECT().Visit(gomock.AssignableToTypeOf(&executor.StandardTxExecutor{})).DoAndReturn(
-		func(e *executor.StandardTxExecutor) error {
+	blkTx.EXPECT().Visit(gomock.AssignableToTypeOf(&executor.CaminoStandardTxExecutor{})).DoAndReturn(
+		func(e *executor.CaminoStandardTxExecutor) error {
 			e.OnAccept = func() {}
 			e.Inputs = atomicInputs
 			e.AtomicRequests = atomicRequests

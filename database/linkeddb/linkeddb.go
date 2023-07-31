@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -111,6 +121,9 @@ func (ldb *linkedDB) Put(key, value []byte) error {
 
 	// The key isn't currently in the list, so we should add it as the head.
 	newHead := node{Value: utils.CopyBytes(value)}
+	// Make a copy of the key to prevent range changes
+	key = utils.CopyBytes(key)
+
 	if headKey, err := ldb.getHeadKey(); err == nil {
 		// The list currently has a head, so we need to update the old head.
 		oldHead, err := ldb.getNode(headKey)

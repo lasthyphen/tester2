@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -9,7 +19,6 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/ava-labs/avalanchego/database"
@@ -18,6 +27,8 @@ import (
 	"github.com/ava-labs/avalanchego/snow/choices"
 	"github.com/ava-labs/avalanchego/staking"
 	"github.com/ava-labs/avalanchego/vms/proposervm/block"
+
+	crypto2 "github.com/ava-labs/avalanchego/utils/crypto"
 )
 
 func testBlockState(a *require.Assertions, bs BlockState) {
@@ -33,10 +44,16 @@ func testBlockState(a *require.Assertions, bs BlockState) {
 	cert := tlsCert.Leaf
 	key := tlsCert.PrivateKey.(crypto.Signer)
 
+	nodeIDBytes, err := crypto2.RecoverSecp256PublicKey(cert)
+	a.NoError(err)
+	nodeID, err := ids.ToNodeID(nodeIDBytes)
+	a.NoError(err)
+
 	b, err := block.Build(
 		parentID,
 		timestamp,
 		pChainHeight,
+		nodeID,
 		cert,
 		innerBlockBytes,
 		chainID,
@@ -81,4 +98,59 @@ func TestMeteredBlockState(t *testing.T) {
 	a.NoError(err)
 
 	testBlockState(a, bs)
+}
+
+func TestGetBlockWithUncachedBlock(t *testing.T) {
+	a := require.New(t)
+	db, bs, blk, err := initCommonTestData(a)
+	a.NoError(err)
+
+	blkWrapper := blockWrapper{
+		Block:  blk.Bytes(),
+		Status: choices.Accepted,
+		block:  blk,
+	}
+
+	bytes, err := c.Marshal(version, &blkWrapper)
+	a.NoError(err)
+
+	blkID := blk.ID()
+	err = db.Put(blkID[:], bytes)
+	a.NoError(err)
+	actualBlk, _, err := bs.GetBlock(blk.ID())
+	a.Equal(blk, actualBlk)
+	a.NoError(err)
+}
+
+func initCommonTestData(a *require.Assertions) (database.Database, BlockState, block.SignedBlock, error) {
+	db := memdb.New()
+	bs := NewBlockState(db)
+
+	parentID := ids.ID{1}
+	timestamp := time.Unix(123, 0)
+	pChainHeight := uint64(2)
+	innerBlockBytes := []byte{3}
+	chainID := ids.ID{4}
+
+	tlsCert, _ := staking.NewTLSCert()
+
+	cert := tlsCert.Leaf
+	key := tlsCert.PrivateKey.(crypto.Signer)
+
+	nodeIDBytes, err := crypto2.RecoverSecp256PublicKey(cert)
+	a.NoError(err)
+	nodeID, err := ids.ToNodeID(nodeIDBytes)
+	a.NoError(err)
+
+	blk, err := block.Build(
+		parentID,
+		timestamp,
+		pChainHeight,
+		nodeID,
+		cert,
+		innerBlockBytes,
+		chainID,
+		key,
+	)
+	return db, bs, blk, err
 }

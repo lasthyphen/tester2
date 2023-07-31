@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -184,7 +194,7 @@ func getAPIAuthConfig(v *viper.Viper) (node.APIAuthConfig, error) {
 		passwordFilePath := v.GetString(APIAuthPasswordFileKey) // picks flag value or default
 		passwordBytes, err := os.ReadFile(passwordFilePath)
 		if err != nil {
-			return node.APIAuthConfig{}, fmt.Errorf("API auth password file %q failed to be read: %w", passwordFilePath, err)
+			return node.APIAuthConfig{}, fmt.Errorf("failed to read API auth password file: %w", err)
 		}
 		config.APIAuthPassword = strings.TrimSpace(string(passwordBytes))
 	}
@@ -787,7 +797,7 @@ func getStakingConfig(v *viper.Viper, networkID uint32) (node.StakingConfig, err
 		return node.StakingConfig{}, errInvalidStakerWeights
 	}
 
-	if !config.EnableStaking && (networkID == constants.MainnetID || networkID == constants.FujiID) {
+	if !config.EnableStaking && constants.IsActiveNetwork(networkID) {
 		return node.StakingConfig{}, errStakingDisableOnPublicNetwork
 	}
 
@@ -800,7 +810,7 @@ func getStakingConfig(v *viper.Viper, networkID uint32) (node.StakingConfig, err
 	if err != nil {
 		return node.StakingConfig{}, err
 	}
-	if networkID != constants.MainnetID && networkID != constants.FujiID {
+	if !constants.IsActiveNetwork(networkID) {
 		config.UptimeRequirement = v.GetFloat64(UptimeRequirementKey)
 		config.MinValidatorStake = v.GetUint64(MinValidatorStakeKey)
 		config.MaxValidatorStake = v.GetUint64(MaxValidatorStakeKey)
@@ -812,6 +822,7 @@ func getStakingConfig(v *viper.Viper, networkID uint32) (node.StakingConfig, err
 		config.RewardConfig.MintingPeriod = v.GetDuration(StakeMintingPeriodKey)
 		config.RewardConfig.SupplyCap = v.GetUint64(StakeSupplyCapKey)
 		config.MinDelegationFee = v.GetUint32(MinDelegatorFeeKey)
+		config.CaminoConfig = getCaminoPlatformConfig(v)
 		switch {
 		case config.UptimeRequirement < 0 || config.UptimeRequirement > 1:
 			return node.StakingConfig{}, errInvalidUptimeRequirement
@@ -837,7 +848,7 @@ func getStakingConfig(v *viper.Viper, networkID uint32) (node.StakingConfig, err
 }
 
 func getTxFeeConfig(v *viper.Viper, networkID uint32) genesis.TxFeeConfig {
-	if networkID != constants.MainnetID && networkID != constants.FujiID {
+	if !constants.IsActiveNetwork(networkID) {
 		return genesis.TxFeeConfig{
 			TxFee:                         v.GetUint64(TxFeeKey),
 			CreateAssetTxFee:              v.GetUint64(CreateAssetTxFeeKey),

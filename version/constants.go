@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -18,10 +28,14 @@ const RPCChainVMProtocol uint = 20
 
 // These are globals that describe network upgrades and node versions
 var (
+	// GitCommit and GitVersion will be set with -X during build step
+	GitCommit  string = "unknown"
+	GitVersion string = "unknown"
+
 	Current = &Semantic{
-		Major: 1,
-		Minor: 9,
-		Patch: 4,
+		Major: 0,
+		Minor: 4,
+		Patch: 3,
 	}
 	CurrentApp = &Application{
 		Major: Current.Major,
@@ -29,14 +43,14 @@ var (
 		Patch: Current.Patch,
 	}
 	MinimumCompatibleVersion = &Application{
-		Major: 1,
-		Minor: 9,
-		Patch: 0,
+		Major: 0,
+		Minor: 4,
+		Patch: 3,
 	}
 	PrevMinimumCompatibleVersion = &Application{
-		Major: 1,
-		Minor: 8,
-		Patch: 0,
+		Major: 0,
+		Minor: 4,
+		Patch: 3,
 	}
 
 	CurrentDatabase = DatabaseVersion1_4_5
@@ -82,6 +96,9 @@ var (
 		constants.FujiID:    time.Date(2021, time.November, 24, 15, 0, 0, 0, time.UTC),
 	}
 	ApricotPhase5DefaultTime = time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC)
+
+	SunrisePhase0Times       = map[uint32]time.Time{}
+	SunrisePhase0DefaultTime = time.Date(2022, time.May, 16, 8, 0, 0, 0, time.UTC)
 
 	ApricotPhase6Times = map[uint32]time.Time{
 		constants.MainnetID: time.Date(2022, time.September, 6, 20, 0, 0, 0, time.UTC),
@@ -150,6 +167,13 @@ func GetApricotPhase5Time(networkID uint32) time.Time {
 		return upgradeTime
 	}
 	return ApricotPhase5DefaultTime
+}
+
+func GetSunrisePhase0Time(networkID uint32) time.Time {
+	if upgradeTime, exists := SunrisePhase0Times[networkID]; exists {
+		return upgradeTime
+	}
+	return SunrisePhase0DefaultTime
 }
 
 func GetApricotPhase6Time(networkID uint32) time.Time {

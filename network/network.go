@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -397,7 +407,14 @@ func (n *network) AllowConnection(nodeID ids.NodeID) bool {
 }
 
 func (n *network) Track(claimedIPPort ips.ClaimedIPPort) bool {
-	nodeID := ids.NodeIDFromCert(claimedIPPort.Cert)
+	nodeID, err := peer.CertToID(claimedIPPort.Cert)
+	if err != nil {
+		n.peerConfig.Log.Debug("failed to create nodeID from certificate: %s",
+			zap.Stringer("nodeID", nodeID),
+			zap.Error(err),
+		)
+		return false
+	}
 
 	// Verify that we do want to attempt to make a connection to this peer
 	// before verifying that the IP has been correctly signed.

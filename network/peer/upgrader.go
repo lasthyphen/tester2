@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -10,6 +20,7 @@ import (
 	"net"
 
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/avalanchego/utils/crypto"
 )
 
 var (
@@ -62,5 +73,15 @@ func connToIDAndCert(conn *tls.Conn) (ids.NodeID, net.Conn, *x509.Certificate, e
 		return ids.NodeID{}, nil, nil, errNoCert
 	}
 	peerCert := state.PeerCertificates[0]
-	return ids.NodeIDFromCert(peerCert), conn, peerCert, nil
+
+	nodeID, err := CertToID(peerCert)
+	return nodeID, conn, peerCert, err
+}
+
+func CertToID(cert *x509.Certificate) (ids.NodeID, error) {
+	pubKeyBytes, err := crypto.RecoverSecp256PublicKey(cert)
+	if err != nil {
+		return ids.EmptyNodeID, err
+	}
+	return ids.ToNodeID(pubKeyBytes)
 }

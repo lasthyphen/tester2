@@ -1,3 +1,13 @@
+// Copyright (C) 2023, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -358,6 +368,12 @@ func buildBlock(
 		)
 	}
 
+	if block, err := caminoBuildBlock(builder, parentID, height, timestamp, parentState); err != nil {
+		return nil, err
+	} else if block != nil {
+		return block, nil
+	}
+
 	// Clean out the mempool's transactions with invalid timestamps.
 	builder.dropExpiredStakerTxs(timestamp)
 
@@ -405,8 +421,9 @@ func getNextStakerToReward(
 		// validator), it's the next staker we will want to remove with a
 		// RewardValidatorTx rather than an AdvanceTimeTx.
 		if priority != txs.SubnetPermissionedValidatorCurrentPriority {
-			return currentStaker.TxID, chainTimestamp.Equal(currentStaker.EndTime), nil
+			return getNextDeferredStakerToRemove(chainTimestamp, chainTimestamp.Equal(currentStaker.EndTime), currentStaker, preferredState)
 		}
 	}
-	return ids.Empty, false, nil
+
+	return getNextDeferredStakerToRemove(chainTimestamp, false, &state.Staker{}, preferredState)
 }

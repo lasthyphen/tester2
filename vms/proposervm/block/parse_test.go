@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -8,6 +18,8 @@ import (
 	"encoding/hex"
 	"testing"
 	"time"
+
+	crypto2 "github.com/ava-labs/avalanchego/utils/crypto"
 
 	"github.com/stretchr/testify/require"
 
@@ -30,10 +42,17 @@ func TestParse(t *testing.T) {
 	cert := tlsCert.Leaf
 	key := tlsCert.PrivateKey.(crypto.Signer)
 
+	nodeIDBytes, err := crypto2.RecoverSecp256PublicKey(cert)
+	require.NoError(err)
+
+	nodeID, err := ids.ToNodeID(nodeIDBytes)
+	require.NoError(err)
+
 	builtBlock, err := Build(
 		parentID,
 		timestamp,
 		pChainHeight,
+		nodeID,
 		cert,
 		innerBlockBytes,
 		chainID,

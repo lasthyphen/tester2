@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -62,6 +72,7 @@ func TestOracle_PostForkBlock_ImplementsInterface(t *testing.T) {
 		ids.Empty, // refer unknown parent
 		time.Time{},
 		0, // pChainHeight,
+		proVM.ctx.NodeID,
 		proVM.ctx.StakingCertLeaf,
 		innerOracleBlk.Bytes(),
 		proVM.ctx.ChainID,
@@ -151,6 +162,7 @@ func TestBlockVerify_PostForkBlock_ParentChecks(t *testing.T) {
 		ids.Empty, // refer unknown parent
 		childCoreBlk.Timestamp(),
 		pChainHeight,
+		proVM.ctx.NodeID,
 		proVM.ctx.StakingCertLeaf,
 		childCoreBlk.Bytes(),
 		proVM.ctx.ChainID,
@@ -266,6 +278,7 @@ func TestBlockVerify_PostForkBlock_TimestampChecks(t *testing.T) {
 		prntProBlk.ID(),
 		childCoreBlk.Timestamp(),
 		pChainHeight,
+		proVM.ctx.NodeID,
 		proVM.ctx.StakingCertLeaf,
 		childCoreBlk.Bytes(),
 		proVM.ctx.ChainID,
@@ -299,6 +312,7 @@ func TestBlockVerify_PostForkBlock_TimestampChecks(t *testing.T) {
 		prntProBlk.ID(),
 		beforeWinStart,
 		pChainHeight,
+		proVM.ctx.NodeID,
 		proVM.ctx.StakingCertLeaf,
 		childCoreBlk.Bytes(),
 		proVM.ctx.ChainID,
@@ -320,6 +334,7 @@ func TestBlockVerify_PostForkBlock_TimestampChecks(t *testing.T) {
 		prntProBlk.ID(),
 		atWindowStart,
 		pChainHeight,
+		proVM.ctx.NodeID,
 		proVM.ctx.StakingCertLeaf,
 		childCoreBlk.Bytes(),
 		proVM.ctx.ChainID,
@@ -341,6 +356,7 @@ func TestBlockVerify_PostForkBlock_TimestampChecks(t *testing.T) {
 		prntProBlk.ID(),
 		afterWindowStart,
 		pChainHeight,
+		proVM.ctx.NodeID,
 		proVM.ctx.StakingCertLeaf,
 		childCoreBlk.Bytes(),
 		proVM.ctx.ChainID,
@@ -377,6 +393,7 @@ func TestBlockVerify_PostForkBlock_TimestampChecks(t *testing.T) {
 		prntProBlk.ID(),
 		afterSubWinEnd,
 		pChainHeight,
+		proVM.ctx.NodeID,
 		proVM.ctx.StakingCertLeaf,
 		childCoreBlk.Bytes(),
 		proVM.ctx.ChainID,
@@ -463,6 +480,7 @@ func TestBlockVerify_PostForkBlock_PChainHeightChecks(t *testing.T) {
 		prntProBlk.ID(),
 		childCoreBlk.Timestamp(),
 		prntBlkPChainHeight-1,
+		proVM.ctx.NodeID,
 		proVM.ctx.StakingCertLeaf,
 		childCoreBlk.Bytes(),
 		proVM.ctx.ChainID,
@@ -671,6 +689,7 @@ func TestBlockVerify_PostForkBlockBuiltOnOption_PChainHeightChecks(t *testing.T)
 		parentBlk.ID(),
 		childCoreBlk.Timestamp(),
 		prntBlkPChainHeight-1,
+		proVM.ctx.NodeID,
 		proVM.ctx.StakingCertLeaf,
 		childCoreBlk.Bytes(),
 		proVM.ctx.ChainID,
@@ -1087,6 +1106,7 @@ func TestBlockVerify_PostForkBlock_ShouldBePostForkOption(t *testing.T) {
 		postForkOracleBlk.ID(),
 		postForkOracleBlk.Timestamp().Add(proposer.WindowDuration),
 		postForkOracleBlk.PChainHeight(),
+		proVM.ctx.NodeID,
 		proVM.ctx.StakingCertLeaf,
 		oracleCoreBlk.opts[0].Bytes(),
 		proVM.ctx.ChainID,

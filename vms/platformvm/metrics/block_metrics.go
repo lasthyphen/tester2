@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -15,7 +25,7 @@ import (
 var _ blocks.Visitor = (*blockMetrics)(nil)
 
 type blockMetrics struct {
-	txMetrics *txMetrics
+	txMetrics *caminoTxMetrics
 
 	numAbortBlocks,
 	numAtomicBlocks,
@@ -28,7 +38,7 @@ func newBlockMetrics(
 	namespace string,
 	registerer prometheus.Registerer,
 ) (*blockMetrics, error) {
-	txMetrics, err := newTxMetrics(namespace, registerer)
+	txMetrics, err := newCaminoTxMetrics(namespace, registerer)
 	errs := wrappers.Errs{Err: err}
 	m := &blockMetrics{
 		txMetrics:         txMetrics,

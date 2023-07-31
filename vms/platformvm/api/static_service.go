@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -172,6 +182,7 @@ type Chain struct {
 // [UTXOs] are the UTXOs on the Platform Chain that exist at genesis.
 // [Validators] are the validators of the primary network at genesis.
 // [Chains] are the chains that exist at genesis.
+// [Camino] are the camino specific genesis args.
 // [Time] is the Platform Chain's time at network genesis.
 type BuildGenesisArgs struct {
 	AvaxAssetID   ids.ID                    `json:"avaxAssetID"`
@@ -179,6 +190,7 @@ type BuildGenesisArgs struct {
 	UTXOs         []UTXO                    `json:"utxos"`
 	Validators    []PermissionlessValidator `json:"validators"`
 	Chains        []Chain                   `json:"chains"`
+	Camino        Camino                    `json:"camino"`
 	Time          json.Uint64               `json:"time"`
 	InitialSupply json.Uint64               `json:"initialSupply"`
 	Message       string                    `json:"message"`
@@ -203,6 +215,11 @@ func bech32ToID(addrStr string) (ids.ShortID, error) {
 // BuildGenesis build the genesis state of the Platform Chain (and thereby the Avalanche network.)
 func (*StaticService) BuildGenesis(_ *http.Request, args *BuildGenesisArgs, reply *BuildGenesisReply) error {
 	// Specify the UTXOs on the Platform chain that exist at genesis.
+	var vdrs txheap.TimedHeap
+	if args.Camino.LockModeBondDeposit {
+		return buildCaminoGenesis(args, reply)
+	}
+
 	utxos := make([]*genesis.UTXO, 0, len(args.UTXOs))
 	for i, apiUTXO := range args.UTXOs {
 		if apiUTXO.Amount == 0 {
@@ -245,7 +262,7 @@ func (*StaticService) BuildGenesis(_ *http.Request, args *BuildGenesisArgs, repl
 	}
 
 	// Specify the validators that are validating the primary network at genesis.
-	vdrs := txheap.NewByEndTime()
+	vdrs = txheap.NewByEndTime()
 	for _, vdr := range args.Validators {
 		weight := uint64(0)
 		stake := make([]*avax.TransferableOutput, len(vdr.Staked))
@@ -362,6 +379,7 @@ func (*StaticService) BuildGenesis(_ *http.Request, args *BuildGenesisArgs, repl
 		UTXOs:         utxos,
 		Validators:    validatorTxs,
 		Chains:        chains,
+		Camino:        args.Camino.ParseToGenesis(),
 		Timestamp:     uint64(args.Time),
 		InitialSupply: uint64(args.InitialSupply),
 		Message:       args.Message,

@@ -1,3 +1,13 @@
+// Copyright (C) 2022-2023, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -91,6 +101,7 @@ func TestApricotProposalBlockTimeVerification(t *testing.T) {
 	}
 
 	// setup state to validate proposal block transaction
+	onParentAccept.EXPECT().CaminoConfig().Return(&state.CaminoConfig{}, nil)
 	onParentAccept.EXPECT().GetTimestamp().Return(chainTime).AnyTimes()
 
 	currentStakersIt := state.NewMockStakerIterator(ctrl)
@@ -174,6 +185,7 @@ func TestBanffProposalBlockTimeVerification(t *testing.T) {
 	env.mockedState.EXPECT().GetTimestamp().Return(chainTime).AnyTimes()
 
 	onParentAccept := state.NewMockDiff(ctrl)
+	onParentAccept.EXPECT().CaminoConfig().Return(&state.CaminoConfig{}, nil)
 	onParentAccept.EXPECT().GetTimestamp().Return(parentTime).AnyTimes()
 	onParentAccept.EXPECT().GetCurrentSupply(constants.PrimaryNetworkID).Return(uint64(1000), nil).AnyTimes()
 
@@ -191,6 +203,7 @@ func TestBanffProposalBlockTimeVerification(t *testing.T) {
 			}
 			return nil, choices.Rejected, database.ErrNotFound
 		}).AnyTimes()
+	onParentAccept.EXPECT().Config().Return(env.config, nil).AnyTimes()
 
 	// setup state to validate proposal block transaction
 	nextStakerTime := chainTime.Add(executor.SyncBound).Add(-1 * time.Second)
@@ -238,6 +251,14 @@ func TestBanffProposalBlockTimeVerification(t *testing.T) {
 	pendingStakersIt.EXPECT().Next().Return(false).AnyTimes() // no pending stakers
 	pendingStakersIt.EXPECT().Release().AnyTimes()
 	onParentAccept.EXPECT().GetPendingStakerIterator().Return(pendingStakersIt, nil).AnyTimes()
+
+	deferredStakersIt := state.NewMockStakerIterator(ctrl)
+	deferredStakersIt.EXPECT().Next().Return(false).AnyTimes() // no deferred stakers
+	deferredStakersIt.EXPECT().Release().AnyTimes()
+	onParentAccept.EXPECT().GetDeferredStakerIterator().Return(deferredStakersIt, nil).AnyTimes()
+
+	onParentAccept.EXPECT().GetNextToUnlockDepositTime(nil).Return(time.Time{}, database.ErrNotFound).AnyTimes()
+	onParentAccept.EXPECT().GetNextToUnlockDepositIDsAndTime(nil).Return(nil, time.Time{}, database.ErrNotFound).AnyTimes()
 
 	env.mockedState.EXPECT().GetUptime(gomock.Any(), gomock.Any()).Return(
 		time.Duration(1000), /*upDuration*/

@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -84,6 +94,7 @@ var (
 // execution.
 type Chain interface {
 	Stakers
+	Camino
 	UTXOAdder
 	UTXOGetter
 	UTXODeleter
@@ -226,6 +237,8 @@ type state struct {
 
 	currentStakers *baseStakers
 	pendingStakers *baseStakers
+
+	caminoState CaminoState
 
 	currentHeight uint64
 
@@ -480,6 +493,11 @@ func new(
 		return nil, err
 	}
 
+	caminoState, err := newCaminoState(baseDB, validatorsDB, metricsReg)
+	if err != nil {
+		return nil, err
+	}
+
 	return &state{
 		validatorUptimes: newValidatorUptimes(),
 
@@ -495,6 +513,8 @@ func new(
 
 		currentStakers: newBaseStakers(),
 		pendingStakers: newBaseStakers(),
+
+		caminoState: caminoState,
 
 		validatorsDB:                 validatorsDB,
 		currentValidatorsDB:          currentValidatorsDB,
@@ -984,13 +1004,13 @@ func (s *state) syncGenesis(genesisBlk blocks.Block, genesis *genesis.State) err
 
 	// Persist primary network validator set at genesis
 	for _, vdrTx := range genesis.Validators {
-		tx, ok := vdrTx.Unsigned.(*txs.AddValidatorTx)
+		tx, ok := vdrTx.Unsigned.(txs.ValidatorTx)
 		if !ok {
-			return fmt.Errorf("expected tx type *txs.AddValidatorTx but got %T", vdrTx.Unsigned)
+			return fmt.Errorf("expected tx type txs.ValidatorTx but got %T", vdrTx.Unsigned)
 		}
 
-		stakeAmount := tx.Validator.Wght
-		stakeDuration := tx.Validator.Duration()
+		stakeAmount := tx.Weight()
+		stakeDuration := tx.EndTime().Sub(tx.StartTime())
 		currentSupply, err := s.GetCurrentSupply(constants.PrimaryNetworkID)
 		if err != nil {
 			return err
@@ -1046,6 +1066,7 @@ func (s *state) load() error {
 		s.loadCurrentValidators(),
 		s.loadPendingValidators(),
 		s.initValidatorSets(),
+		s.caminoState.Load(s),
 	)
 	return errs.Err
 }
@@ -1315,7 +1336,7 @@ func (s *state) loadPendingValidators() error {
 }
 
 // Invariant: initValidatorSets requires loadCurrentValidators to have already
-//            been called.
+//	been called.
 func (s *state) initValidatorSets() error {
 	primaryValidators, ok := s.cfg.Validators.Get(constants.PrimaryNetworkID)
 	if !ok {
@@ -1382,6 +1403,7 @@ func (s *state) write(updateValidators bool, height uint64) error {
 		s.writeSubnetSupplies(),
 		s.writeChains(),
 		s.writeMetadata(),
+		s.caminoState.Write(),
 	)
 	return errs.Err
 }
@@ -1409,6 +1431,7 @@ func (s *state) Close() error {
 		s.chainDB.Close(),
 		s.singletonDB.Close(),
 		s.blockDB.Close(),
+		s.caminoState.Close(),
 	)
 	return errs.Err
 }
@@ -1456,7 +1479,12 @@ func (s *state) init(genesisBytes []byte) error {
 	if err != nil {
 		return err
 	}
+
 	if err := s.syncGenesis(genesisBlock, genesisState); err != nil {
+		return err
+	}
+
+	if err := s.caminoState.SyncGenesis(s, genesisState); err != nil {
 		return err
 	}
 

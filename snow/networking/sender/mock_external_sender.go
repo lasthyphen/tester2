@@ -8,12 +8,11 @@
 package sender
 
 import (
-	reflect "reflect"
-
 	ids "github.com/ava-labs/avalanchego/ids"
 	message "github.com/ava-labs/avalanchego/message"
 	set "github.com/ava-labs/avalanchego/utils/set"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockExternalSender is a mock of ExternalSender interface.
@@ -40,7 +39,8 @@ func (m *MockExternalSender) EXPECT() *MockExternalSenderMockRecorder {
 }
 
 // Gossip mocks base method.
-func (m *MockExternalSender) Gossip(arg0 message.OutboundMessage, arg1 ids.ID, arg2 bool, arg3, arg4, arg5 int) set.Set[ids.NodeID] {
+func (m *MockExternalSender) Gossip(arg0 message.OutboundMessage, arg1 ids.ID, arg2 bool, arg3,
+	arg4, arg5 int) set.Set[ids.NodeID] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Gossip", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(set.Set[ids.NodeID])

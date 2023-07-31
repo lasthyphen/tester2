@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -83,6 +93,7 @@ type Config struct {
 	InitialStakeDurationOffset uint64        `json:"initialStakeDurationOffset"`
 	InitialStakedFunds         []ids.ShortID `json:"initialStakedFunds"`
 	InitialStakers             []Staker      `json:"initialStakers"`
+	Camino                     Camino        `json:"camino"`
 
 	CChainGenesis string `json:"cChainGenesis"`
 
@@ -126,6 +137,11 @@ func (c Config) Unparse() (UnparsedConfig, error) {
 		}
 		uc.InitialStakers[i] = uis
 	}
+	var err error
+	uc.Camino, err = c.Camino.Unparse(c.NetworkID, c.StartTime)
+	if err != nil {
+		return uc, err
+	}
 
 	return uc, nil
 }
@@ -145,17 +161,32 @@ func (c *Config) InitialSupply() (uint64, error) {
 		}
 		initialSupply = newInitialSupply
 	}
+
+	caminoInitialSupply, err := c.Camino.InitialSupply()
+	if err != nil {
+		return 0, err
+	}
+
+	initialSupply, err = math.Add64(initialSupply, caminoInitialSupply)
+	if err != nil {
+		return 0, err
+	}
+
 	return initialSupply, nil
 }
 
 var (
-	// MainnetConfig is the config that should be used to generate the mainnet
-	// genesis.
-	MainnetConfig Config
+	// CaminoConfig is the config that should be used to generate the camino
+	// mainnet genesis.
+	CaminoConfig Config
 
-	// FujiConfig is the config that should be used to generate the fuji
+	// ColumbusConfig is the config that should be used to generate the columbus
 	// genesis.
-	FujiConfig Config
+	ColumbusConfig Config
+
+	// KopernikusConfig is the config that should be used to generate the kopernikus
+	// genesis.
+	KopernikusConfig Config
 
 	// LocalConfig is the config that should be used to generate a local
 	// genesis.
@@ -163,27 +194,33 @@ var (
 )
 
 func init() {
-	unparsedMainnetConfig := UnparsedConfig{}
-	unparsedFujiConfig := UnparsedConfig{}
+	unparsedCaminoConfig := UnparsedConfig{}
+	unparsedColumbusConfig := UnparsedConfig{}
+	unparsedKopernikusConfig := UnparsedConfig{}
 	unparsedLocalConfig := UnparsedConfig{}
 
 	errs := wrappers.Errs{}
 	errs.Add(
-		json.Unmarshal(mainnetGenesisConfigJSON, &unparsedMainnetConfig),
-		json.Unmarshal(fujiGenesisConfigJSON, &unparsedFujiConfig),
+		json.Unmarshal(caminoGenesisConfigJSON, &unparsedCaminoConfig),
+		json.Unmarshal(columbusGenesisConfigJSON, &unparsedColumbusConfig),
+		json.Unmarshal(kopernikusGenesisConfigJSON, &unparsedKopernikusConfig),
 		json.Unmarshal(localGenesisConfigJSON, &unparsedLocalConfig),
 	)
 	if errs.Errored() {
 		panic(errs.Err)
 	}
 
-	mainnetConfig, err := unparsedMainnetConfig.Parse()
+	caminoConfig, err := unparsedCaminoConfig.Parse()
 	errs.Add(err)
-	MainnetConfig = mainnetConfig
+	CaminoConfig = caminoConfig
 
-	fujiConfig, err := unparsedFujiConfig.Parse()
+	columbusConfig, err := unparsedColumbusConfig.Parse()
 	errs.Add(err)
-	FujiConfig = fujiConfig
+	ColumbusConfig = columbusConfig
+
+	kopernikusConfig, err := unparsedKopernikusConfig.Parse()
+	errs.Add(err)
+	KopernikusConfig = kopernikusConfig
 
 	localConfig, err := unparsedLocalConfig.Parse()
 	errs.Add(err)
@@ -196,10 +233,12 @@ func init() {
 
 func GetConfig(networkID uint32) *Config {
 	switch networkID {
-	case constants.MainnetID:
-		return &MainnetConfig
-	case constants.FujiID:
-		return &FujiConfig
+	case constants.CaminoID:
+		return &CaminoConfig
+	case constants.ColumbusID:
+		return &ColumbusConfig
+	case constants.KopernikusID:
+		return &KopernikusConfig
 	case constants.LocalID:
 		return &LocalConfig
 	default:

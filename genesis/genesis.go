@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -131,6 +141,19 @@ func validateConfig(networkID uint32, config *Config) error {
 		)
 	}
 
+	if len(config.CChainGenesis) == 0 {
+		return errNoCChainGenesis
+	}
+
+	if err := validateCaminoConfig(config); err != nil {
+		return err
+	}
+
+	// the rest of the checks are only for LockModeBondDeposit == false
+	if config.Camino.LockModeBondDeposit {
+		return nil
+	}
+
 	// We don't impose any restrictions on the minimum
 	// stake duration to enable complex testing configurations
 	// but recommend setting a minimum duration of at least
@@ -157,10 +180,6 @@ func validateConfig(networkID uint32, config *Config) error {
 		return fmt.Errorf("initial staked funds validation failed: %w", err)
 	}
 
-	if len(config.CChainGenesis) == 0 {
-		return errNoCChainGenesis
-	}
-
 	return nil
 }
 
@@ -175,7 +194,7 @@ func validateConfig(networkID uint32, config *Config) error {
 // 1) The ID of the new network. [networkID]
 // 2) The location of a custom genesis config to load. [filepath]
 //
-// If [filepath] is empty or the given network ID is Mainnet, Testnet, or Local, returns error.
+// If [filepath] is empty or the given network ID is Camino, Testnet, or Local, returns error.
 // If [filepath] is non-empty and networkID isn't Mainnet, Testnet, or Local,
 // loads the network genesis data from the config at [filepath].
 //
@@ -185,7 +204,7 @@ func validateConfig(networkID uint32, config *Config) error {
 //  2. The asset ID of AVAX
 func FromFile(networkID uint32, filepath string) ([]byte, ids.ID, error) {
 	switch networkID {
-	case constants.MainnetID, constants.TestnetID, constants.LocalID:
+	case constants.MainnetID, constants.CaminoID, constants.TestnetID, constants.LocalID:
 		return nil, ids.ID{}, fmt.Errorf(
 			"cannot override genesis config for standard network %s (%d)",
 			constants.NetworkName(networkID),
@@ -225,8 +244,7 @@ func FromFile(networkID uint32, filepath string) ([]byte, ids.ID, error) {
 //     (ie the genesis state of the network)
 //  2. The asset ID of AVAX
 func FromFlag(networkID uint32, genesisContent string) ([]byte, ids.ID, error) {
-	switch networkID {
-	case constants.MainnetID, constants.TestnetID, constants.LocalID:
+	if constants.IsActiveNetwork(networkID) || networkID == constants.LocalID {
 		return nil, ids.ID{}, fmt.Errorf(
 			"cannot override genesis config for standard network %s (%d)",
 			constants.NetworkName(networkID),
@@ -253,6 +271,10 @@ func FromFlag(networkID uint32, genesisContent string) ([]byte, ids.ID, error) {
 func FromConfig(config *Config) ([]byte, ids.ID, error) {
 	hrp := constants.GetHRP(config.NetworkID)
 
+	if config.Camino.LockModeBondDeposit {
+		return buildCaminoGenesis(config, hrp)
+	}
+
 	amount := uint64(0)
 
 	// Specify the genesis state of the AVM
@@ -262,8 +284,8 @@ func FromConfig(config *Config) ([]byte, ids.ID, error) {
 	}
 	{
 		avax := avm.AssetDefinition{
-			Name:         "Avalanche",
-			Symbol:       "AVAX",
+			Name:         constants.TokenName(config.NetworkID),
+			Symbol:       constants.TokenSymbol(config.NetworkID),
 			Denomination: 9,
 			InitialState: map[string][]interface{}{},
 		}
@@ -296,7 +318,7 @@ func FromConfig(config *Config) ([]byte, ids.ID, error) {
 			return nil, ids.Empty, fmt.Errorf("couldn't parse memo bytes to string: %w", err)
 		}
 		avmArgs.GenesisData = map[string]avm.AssetDefinition{
-			"AVAX": avax, // The AVM starts out with one asset: AVAX
+			avax.Symbol: avax, // The AVM starts out with one asset
 		}
 	}
 	avmReply := avm.BuildGenesisReply{}
@@ -334,6 +356,7 @@ func FromConfig(config *Config) ([]byte, ids.ID, error) {
 		InitialSupply: json.Uint64(initialSupply),
 		Message:       config.Message,
 		Encoding:      defaultEncoding,
+		Camino:        caminoArgFromConfig(config),
 	}
 	for _, allocation := range config.Allocations {
 		if initiallyStaked.Contains(allocation.AVAXAddr) {

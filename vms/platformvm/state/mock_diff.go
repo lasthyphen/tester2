@@ -12,7 +12,12 @@ import (
 	time "time"
 
 	ids "github.com/ava-labs/avalanchego/ids"
+	set "github.com/ava-labs/avalanchego/utils/set"
 	avax "github.com/ava-labs/avalanchego/vms/components/avax"
+	multisig "github.com/ava-labs/avalanchego/vms/components/multisig"
+	config "github.com/ava-labs/avalanchego/vms/platformvm/config"
+	deposit "github.com/ava-labs/avalanchego/vms/platformvm/deposit"
+	locked "github.com/ava-labs/avalanchego/vms/platformvm/locked"
 	status "github.com/ava-labs/avalanchego/vms/platformvm/status"
 	txs "github.com/ava-labs/avalanchego/vms/platformvm/txs"
 	gomock "github.com/golang/mock/gomock"
@@ -51,6 +56,18 @@ func (m *MockDiff) AddChain(arg0 *txs.Tx) {
 func (mr *MockDiffMockRecorder) AddChain(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddChain", reflect.TypeOf((*MockDiff)(nil).AddChain), arg0)
+}
+
+// SetDepositOffer mocks base method.
+func (m *MockDiff) SetDepositOffer(arg0 *deposit.Offer) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetDepositOffer", arg0)
+}
+
+// SetDepositOffer indicates an expected call of SetDepositOffer.
+func (mr *MockDiffMockRecorder) SetDepositOffer(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDepositOffer", reflect.TypeOf((*MockDiff)(nil).SetDepositOffer), arg0)
 }
 
 // AddRewardUTXO mocks base method.
@@ -125,6 +142,48 @@ func (mr *MockDiffMockRecorder) Apply(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Apply", reflect.TypeOf((*MockDiff)(nil).Apply), arg0)
 }
 
+// ApplyCaminoState mocks base method.
+func (m *MockDiff) ApplyCaminoState(arg0 State) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "ApplyCaminoState", arg0)
+}
+
+// ApplyCaminoState indicates an expected call of ApplyCaminoState.
+func (mr *MockDiffMockRecorder) ApplyCaminoState(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyCaminoState", reflect.TypeOf((*MockDiff)(nil).ApplyCaminoState), arg0)
+}
+
+// CaminoConfig mocks base method.
+func (m *MockDiff) CaminoConfig() (*CaminoConfig, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CaminoConfig")
+	ret0, _ := ret[0].(*CaminoConfig)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CaminoConfig indicates an expected call of CaminoConfig.
+func (mr *MockDiffMockRecorder) CaminoConfig() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CaminoConfig", reflect.TypeOf((*MockDiff)(nil).CaminoConfig))
+}
+
+// Config mocks base method.
+func (m *MockDiff) Config() (*config.Config, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Config")
+	ret0, _ := ret[0].(*config.Config)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Config indicates an expected call of Config.
+func (mr *MockDiffMockRecorder) Config() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Config", reflect.TypeOf((*MockDiff)(nil).Config))
+}
+
 // DeleteCurrentDelegator mocks base method.
 func (m *MockDiff) DeleteCurrentDelegator(arg0 *Staker) {
 	m.ctrl.T.Helper()
@@ -185,6 +244,36 @@ func (mr *MockDiffMockRecorder) DeleteUTXO(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUTXO", reflect.TypeOf((*MockDiff)(nil).DeleteUTXO), arg0)
 }
 
+// GetAddressStates mocks base method.
+func (m *MockDiff) GetAddressStates(arg0 ids.ShortID) (uint64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAddressStates", arg0)
+	ret0, _ := ret[0].(uint64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAddressStates indicates an expected call of GetAddressStates.
+func (mr *MockDiffMockRecorder) GetAddressStates(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAddressStates", reflect.TypeOf((*MockDiff)(nil).GetAddressStates), arg0)
+}
+
+// GetAllDepositOffers mocks base method.
+func (m *MockDiff) GetAllDepositOffers() ([]*deposit.Offer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllDepositOffers")
+	ret0, _ := ret[0].([]*deposit.Offer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllDepositOffers indicates an expected call of GetAllDepositOffers.
+func (mr *MockDiffMockRecorder) GetAllDepositOffers() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllDepositOffers", reflect.TypeOf((*MockDiff)(nil).GetAllDepositOffers))
+}
+
 // GetChains mocks base method.
 func (m *MockDiff) GetChains(arg0 ids.ID) ([]*txs.Tx, error) {
 	m.ctrl.T.Helper()
@@ -198,6 +287,21 @@ func (m *MockDiff) GetChains(arg0 ids.ID) ([]*txs.Tx, error) {
 func (mr *MockDiffMockRecorder) GetChains(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChains", reflect.TypeOf((*MockDiff)(nil).GetChains), arg0)
+}
+
+// GetClaimable mocks base method.
+func (m *MockDiff) GetClaimable(arg0 ids.ID) (*Claimable, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetClaimable", arg0)
+	ret0, _ := ret[0].(*Claimable)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetClaimable indicates an expected call of GetClaimable.
+func (mr *MockDiffMockRecorder) GetClaimable(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClaimable", reflect.TypeOf((*MockDiff)(nil).GetClaimable), arg0)
 }
 
 // GetCurrentDelegatorIterator mocks base method.
@@ -260,6 +364,97 @@ func (mr *MockDiffMockRecorder) GetCurrentValidator(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentValidator", reflect.TypeOf((*MockDiff)(nil).GetCurrentValidator), arg0, arg1)
 }
 
+// GetDeposit mocks base method.
+func (m *MockDiff) GetDeposit(arg0 ids.ID) (*deposit.Deposit, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDeposit", arg0)
+	ret0, _ := ret[0].(*deposit.Deposit)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDeposit indicates an expected call of GetDeposit.
+func (mr *MockDiffMockRecorder) GetDeposit(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeposit", reflect.TypeOf((*MockDiff)(nil).GetDeposit), arg0)
+}
+
+// GetNextToUnlockDepositTime mocks base method.
+func (m *MockDiff) GetNextToUnlockDepositTime(arg0 set.Set[ids.ID]) (time.Time, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNextToUnlockDepositTime", arg0)
+	ret0, _ := ret[0].(time.Time)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNextToUnlockDepositTime indicates an expected call of GetNextToUnlockDepositTime.
+func (mr *MockDiffMockRecorder) GetNextToUnlockDepositTime(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNextToUnlockDepositTime", reflect.TypeOf((*MockDiff)(nil).GetNextToUnlockDepositTime), arg0)
+}
+
+// GetNextToUnlockDepositIDsAndTime mocks base method.
+func (m *MockDiff) GetNextToUnlockDepositIDsAndTime(arg0 set.Set[ids.ID]) ([]ids.ID, time.Time, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNextToUnlockDepositIDsAndTime", arg0)
+	ret0, _ := ret[0].([]ids.ID)
+	ret1, _ := ret[1].(time.Time)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetNextToUnlockDepositIDsAndTime indicates an expected call of GetNextToUnlockDepositIDsAndTime.
+func (mr *MockDiffMockRecorder) GetNextToUnlockDepositIDsAndTime(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNextToUnlockDepositIDsAndTime", reflect.TypeOf((*MockDiff)(nil).GetNextToUnlockDepositIDsAndTime), arg0)
+}
+
+// GetDepositOffer mocks base method.
+func (m *MockDiff) GetDepositOffer(arg0 ids.ID) (*deposit.Offer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDepositOffer", arg0)
+	ret0, _ := ret[0].(*deposit.Offer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDepositOffer indicates an expected call of GetDepositOffer.
+func (mr *MockDiffMockRecorder) GetDepositOffer(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDepositOffer", reflect.TypeOf((*MockDiff)(nil).GetDepositOffer), arg0)
+}
+
+// GetMultisigAlias mocks base method.
+func (m *MockDiff) GetMultisigAlias(arg0 ids.ShortID) (*multisig.Alias, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMultisigAlias", arg0)
+	ret0, _ := ret[0].(*multisig.Alias)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMultisigAlias indicates an expected call of GetMultisigAlias.
+func (mr *MockDiffMockRecorder) GetMultisigAlias(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMultisigAlias", reflect.TypeOf((*MockDiff)(nil).GetMultisigAlias), arg0)
+}
+
+// GetNotDistributedValidatorReward mocks base method.
+func (m *MockDiff) GetNotDistributedValidatorReward() (uint64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNotDistributedValidatorReward")
+	ret0, _ := ret[0].(uint64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNotDistributedValidatorReward indicates an expected call of GetNotDistributedValidatorReward.
+func (mr *MockDiffMockRecorder) GetNotDistributedValidatorReward() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNotDistributedValidatorReward", reflect.TypeOf((*MockDiff)(nil).GetNotDistributedValidatorReward))
+}
+
 // GetPendingDelegatorIterator mocks base method.
 func (m *MockDiff) GetPendingDelegatorIterator(arg0 ids.ID, arg1 ids.NodeID) (StakerIterator, error) {
 	m.ctrl.T.Helper()
@@ -305,6 +500,60 @@ func (mr *MockDiffMockRecorder) GetPendingValidator(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPendingValidator", reflect.TypeOf((*MockDiff)(nil).GetPendingValidator), arg0, arg1)
 }
 
+// GetDeferredStakerIterator mocks base method.
+func (m *MockDiff) GetDeferredStakerIterator() (StakerIterator, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDeferredStakerIterator")
+	ret0, _ := ret[0].(StakerIterator)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDeferredStakerIterator indicates an expected call of GetDeferredStakerIterator.
+func (mr *MockDiffMockRecorder) GetDeferredStakerIterator() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeferredStakerIterator", reflect.TypeOf((*MockDiff)(nil).GetDeferredStakerIterator))
+}
+
+// GetDeferredValidator mocks base method.
+func (m *MockDiff) GetDeferredValidator(arg0 ids.ID, arg1 ids.NodeID) (*Staker, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDeferredValidator", arg0, arg1)
+	ret0, _ := ret[0].(*Staker)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDeferredValidator indicates an expected call of GetDeferredValidator.
+func (mr *MockDiffMockRecorder) GetDeferredValidator(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeferredValidator", reflect.TypeOf((*MockDiff)(nil).GetDeferredValidator), arg0, arg1)
+}
+
+// DeleteDeferredValidator mocks base method.
+func (m *MockDiff) DeleteDeferredValidator(arg0 *Staker) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "DeleteDeferredValidator", arg0)
+}
+
+// DeleteDeferredValidator indicates an expected call of DeleteDeferredValidator.
+func (mr *MockDiffMockRecorder) DeleteDeferredValidator(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteDeferredValidator", reflect.TypeOf((*MockDiff)(nil).DeleteDeferredValidator), arg0)
+}
+
+// PutDeferredValidator mocks base method.
+func (m *MockDiff) PutDeferredValidator(arg0 *Staker) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "PutDeferredValidator", arg0)
+}
+
+// PutDeferredValidator indicates an expected call of PutDeferredValidator.
+func (mr *MockDiffMockRecorder) PutDeferredValidator(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutDeferredValidator", reflect.TypeOf((*MockDiff)(nil).PutDeferredValidator), arg0)
+}
+
 // GetRewardUTXOs mocks base method.
 func (m *MockDiff) GetRewardUTXOs(arg0 ids.ID) ([]*avax.UTXO, error) {
 	m.ctrl.T.Helper()
@@ -318,6 +567,21 @@ func (m *MockDiff) GetRewardUTXOs(arg0 ids.ID) ([]*avax.UTXO, error) {
 func (mr *MockDiffMockRecorder) GetRewardUTXOs(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRewardUTXOs", reflect.TypeOf((*MockDiff)(nil).GetRewardUTXOs), arg0)
+}
+
+// GetShortIDLink mocks base method.
+func (m *MockDiff) GetShortIDLink(arg0 ids.ShortID, arg1 ShortLinkKey) (ids.ShortID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetShortIDLink", arg0, arg1)
+	ret0, _ := ret[0].(ids.ShortID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetShortIDLink indicates an expected call of GetShortIDLink.
+func (mr *MockDiffMockRecorder) GetShortIDLink(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetShortIDLink", reflect.TypeOf((*MockDiff)(nil).GetShortIDLink), arg0, arg1)
 }
 
 // GetSubnetTransformation mocks base method.
@@ -395,6 +659,21 @@ func (mr *MockDiffMockRecorder) GetUTXO(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUTXO", reflect.TypeOf((*MockDiff)(nil).GetUTXO), arg0)
 }
 
+// LockedUTXOs mocks base method.
+func (m *MockDiff) LockedUTXOs(arg0 set.Set[ids.ID], arg1 set.Set[ids.ShortID], arg2 locked.State) ([]*avax.UTXO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LockedUTXOs", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*avax.UTXO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LockedUTXOs indicates an expected call of LockedUTXOs.
+func (mr *MockDiffMockRecorder) LockedUTXOs(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LockedUTXOs", reflect.TypeOf((*MockDiff)(nil).LockedUTXOs), arg0, arg1, arg2)
+}
+
 // PutCurrentDelegator mocks base method.
 func (m *MockDiff) PutCurrentDelegator(arg0 *Staker) {
 	m.ctrl.T.Helper()
@@ -443,6 +722,30 @@ func (mr *MockDiffMockRecorder) PutPendingValidator(arg0 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutPendingValidator", reflect.TypeOf((*MockDiff)(nil).PutPendingValidator), arg0)
 }
 
+// SetAddressStates mocks base method.
+func (m *MockDiff) SetAddressStates(arg0 ids.ShortID, arg1 uint64) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetAddressStates", arg0, arg1)
+}
+
+// SetAddressStates indicates an expected call of SetAddressStates.
+func (mr *MockDiffMockRecorder) SetAddressStates(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetAddressStates", reflect.TypeOf((*MockDiff)(nil).SetAddressStates), arg0, arg1)
+}
+
+// SetClaimable mocks base method.
+func (m *MockDiff) SetClaimable(arg0 ids.ID, arg1 *Claimable) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetClaimable", arg0, arg1)
+}
+
+// SetClaimable indicates an expected call of SetClaimable.
+func (mr *MockDiffMockRecorder) SetClaimable(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetClaimable", reflect.TypeOf((*MockDiff)(nil).SetClaimable), arg0, arg1)
+}
+
 // SetCurrentSupply mocks base method.
 func (m *MockDiff) SetCurrentSupply(arg0 ids.ID, arg1 uint64) {
 	m.ctrl.T.Helper()
@@ -455,6 +758,42 @@ func (mr *MockDiffMockRecorder) SetCurrentSupply(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCurrentSupply", reflect.TypeOf((*MockDiff)(nil).SetCurrentSupply), arg0, arg1)
 }
 
+// SetMultisigAlias mocks base method.
+func (m *MockDiff) SetMultisigAlias(arg0 *multisig.Alias) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetMultisigAlias", arg0)
+}
+
+// SetMultisigAlias indicates an expected call of SetMultisigAlias.
+func (mr *MockDiffMockRecorder) SetMultisigAlias(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetMultisigAlias", reflect.TypeOf((*MockDiff)(nil).SetMultisigAlias), arg0)
+}
+
+// SetNotDistributedValidatorReward mocks base method.
+func (m *MockDiff) SetNotDistributedValidatorReward(arg0 uint64) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetNotDistributedValidatorReward", arg0)
+}
+
+// SetNotDistributedValidatorReward indicates an expected call of SetNotDistributedValidatorReward.
+func (mr *MockDiffMockRecorder) SetNotDistributedValidatorReward(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetNotDistributedValidatorReward", reflect.TypeOf((*MockDiff)(nil).SetNotDistributedValidatorReward), arg0)
+}
+
+// SetShortIDLink mocks base method.
+func (m *MockDiff) SetShortIDLink(arg0 ids.ShortID, arg1 ShortLinkKey, arg2 *ids.ShortID) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetShortIDLink", arg0, arg1, arg2)
+}
+
+// SetShortIDLink indicates an expected call of SetShortIDLink.
+func (mr *MockDiffMockRecorder) SetShortIDLink(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetShortIDLink", reflect.TypeOf((*MockDiff)(nil).SetShortIDLink), arg0, arg1, arg2)
+}
+
 // SetTimestamp mocks base method.
 func (m *MockDiff) SetTimestamp(arg0 time.Time) {
 	m.ctrl.T.Helper()
@@ -465,4 +804,40 @@ func (m *MockDiff) SetTimestamp(arg0 time.Time) {
 func (mr *MockDiffMockRecorder) SetTimestamp(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTimestamp", reflect.TypeOf((*MockDiff)(nil).SetTimestamp), arg0)
+}
+
+// AddDeposit mocks base method.
+func (m *MockDiff) AddDeposit(arg0 ids.ID, arg1 *deposit.Deposit) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "AddDeposit", arg0, arg1)
+}
+
+// AddDeposit indicates an expected call of AddDeposit.
+func (mr *MockDiffMockRecorder) AddDeposit(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddDeposit", reflect.TypeOf((*MockDiff)(nil).AddDeposit), arg0, arg1)
+}
+
+// ModifyDeposit mocks base method.
+func (m *MockDiff) ModifyDeposit(arg0 ids.ID, arg1 *deposit.Deposit) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "ModifyDeposit", arg0, arg1)
+}
+
+// ModifyDeposit indicates an expected call of ModifyDeposit.
+func (mr *MockDiffMockRecorder) ModifyDeposit(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyDeposit", reflect.TypeOf((*MockDiff)(nil).ModifyDeposit), arg0, arg1)
+}
+
+// RemoveDeposit mocks base method.
+func (m *MockDiff) RemoveDeposit(arg0 ids.ID, arg1 *deposit.Deposit) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "RemoveDeposit", arg0, arg1)
+}
+
+// RemoveDeposit indicates an expected call of RemoveDeposit.
+func (mr *MockDiffMockRecorder) RemoveDeposit(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveDeposit", reflect.TypeOf((*MockDiff)(nil).RemoveDeposit), arg0, arg1)
 }

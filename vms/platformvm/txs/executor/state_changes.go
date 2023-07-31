@@ -1,3 +1,13 @@
+// Copyright (C) 2023, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -69,6 +79,8 @@ type stateChanges struct {
 	pendingValidatorsToRemove []*state.Staker
 	pendingDelegatorsToRemove []*state.Staker
 	currentValidatorsToRemove []*state.Staker
+
+	caminoStateChanges
 }
 
 func (s *stateChanges) Apply(stateDiff state.Diff) {
@@ -91,12 +103,14 @@ func (s *stateChanges) Apply(stateDiff state.Diff) {
 	for _, currentValidatorToRemove := range s.currentValidatorsToRemove {
 		stateDiff.DeleteCurrentValidator(currentValidatorToRemove)
 	}
+
+	s.caminoStateChanges.Apply(stateDiff)
 }
 
 func (s *stateChanges) Len() int {
 	return len(s.currentValidatorsToAdd) + len(s.currentDelegatorsToAdd) +
 		len(s.pendingValidatorsToRemove) + len(s.pendingDelegatorsToRemove) +
-		len(s.currentValidatorsToRemove)
+		len(s.currentValidatorsToRemove) + s.caminoStateChanges.Len()
 }
 
 // AdvanceTimeTo does not modify [parentState].
@@ -123,6 +137,9 @@ func AdvanceTimeTo(
 		stakerToRemove := pendingStakerIterator.Value()
 		if stakerToRemove.StartTime.After(newChainTime) {
 			break
+		}
+		if stakerToRemove.EndTime.Equal(stakerToRemove.StartTime) {
+			continue
 		}
 
 		stakerToAdd := *stakerToRemove
@@ -201,6 +218,11 @@ func AdvanceTimeTo(
 
 		changes.currentValidatorsToRemove = append(changes.currentValidatorsToRemove, stakerToRemove)
 	}
+
+	if err := caminoAdvanceTimeTo(backend, parentState, newChainTime, changes); err != nil {
+		return nil, err
+	}
+
 	return changes, nil
 }
 

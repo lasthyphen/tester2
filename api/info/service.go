@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -42,6 +52,8 @@ type Info struct {
 
 type Parameters struct {
 	Version                       *version.Application
+	GitVersion                    string
+	GitCommit                     string
 	NodeID                        ids.NodeID
 	NodePOP                       *signer.ProofOfPossession
 	NetworkID                     uint32
@@ -55,6 +67,7 @@ type Parameters struct {
 	AddSubnetValidatorFee         uint64
 	AddSubnetDelegatorFee         uint64
 	VMManager                     vms.Manager
+	GenesisBytes                  []byte
 }
 
 // NewService returns a new admin API service
@@ -95,7 +108,10 @@ type GetNodeVersionReply struct {
 	Version            string            `json:"version"`
 	DatabaseVersion    string            `json:"databaseVersion"`
 	RPCProtocolVersion json.Uint32       `json:"rpcProtocolVersion"`
+	SdkGitCommit       string            `json:"sdkGitCommit"`
+	SdkGitVersion      string            `json:"sdkGitVersion"`
 	GitCommit          string            `json:"gitCommit"`
+	GitVersion         string            `json:"gitVersion"`
 	VMVersions         map[string]string `json:"vmVersions"`
 }
 
@@ -111,7 +127,10 @@ func (i *Info) GetNodeVersion(_ *http.Request, _ *struct{}, reply *GetNodeVersio
 	reply.Version = i.Version.String()
 	reply.DatabaseVersion = version.CurrentDatabase.String()
 	reply.RPCProtocolVersion = json.Uint32(version.RPCChainVMProtocol)
-	reply.GitCommit = version.GitCommit
+	reply.SdkGitCommit = version.GitCommit
+	reply.SdkGitVersion = version.GitVersion
+	reply.GitCommit = i.Parameters.GitCommit
+	reply.GitVersion = i.Parameters.GitVersion
 	reply.VMVersions = vmVersions
 	return nil
 }

@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -355,11 +365,13 @@ func (v *verifier) proposalBlock(
 	onCommitState state.Diff,
 	onAbortState state.Diff,
 ) error {
-	txExecutor := executor.ProposalTxExecutor{
-		OnCommitState: onCommitState,
-		OnAbortState:  onAbortState,
-		Backend:       v.txExecutorBackend,
-		Tx:            b.Tx,
+	txExecutor := executor.CaminoProposalTxExecutor{
+		ProposalTxExecutor: executor.ProposalTxExecutor{
+			OnCommitState: onCommitState,
+			OnAbortState:  onAbortState,
+			Backend:       v.txExecutorBackend,
+			Tx:            b.Tx,
+		},
 	}
 
 	if err := b.Tx.Unsigned.Visit(&txExecutor); err != nil {
@@ -404,10 +416,12 @@ func (v *verifier) standardBlock(
 	// Finally we process the transactions
 	funcs := make([]func(), 0, len(b.Transactions))
 	for _, tx := range b.Transactions {
-		txExecutor := executor.StandardTxExecutor{
-			Backend: v.txExecutorBackend,
-			State:   onAcceptState,
-			Tx:      tx,
+		txExecutor := executor.CaminoStandardTxExecutor{
+			StandardTxExecutor: executor.StandardTxExecutor{
+				Backend: v.txExecutorBackend,
+				State:   onAcceptState,
+				Tx:      tx,
+			},
 		}
 		if err := tx.Unsigned.Visit(&txExecutor); err != nil {
 			txID := tx.ID()

@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -13,7 +23,6 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/ava-labs/avalanchego/database/manager"
@@ -31,6 +40,7 @@ import (
 	"github.com/ava-labs/avalanchego/vms/proposervm/proposer"
 	"github.com/ava-labs/avalanchego/vms/proposervm/state"
 
+	crypto2 "github.com/ava-labs/avalanchego/utils/crypto"
 	statelessblock "github.com/ava-labs/avalanchego/vms/proposervm/block"
 )
 
@@ -47,7 +57,8 @@ type fullVM struct {
 }
 
 var (
-	pTestCert *tls.Certificate
+	pTestCert   *tls.Certificate
+	pTestNodeID ids.NodeID
 
 	genesisUnixTimestamp int64 = 1000
 	genesisTimestamp           = time.Unix(genesisUnixTimestamp, 0)
@@ -62,6 +73,14 @@ var (
 func init() {
 	var err error
 	pTestCert, err = staking.NewTLSCert()
+	if err != nil {
+		panic(err)
+	}
+	nodeIDBytes, err := crypto2.RecoverSecp256PublicKey(pTestCert.Leaf)
+	if err != nil {
+		panic(err)
+	}
+	pTestNodeID, err = ids.ToNodeID(nodeIDBytes)
 	if err != nil {
 		panic(err)
 	}
@@ -162,7 +181,7 @@ func initTestProposerVM(
 	}
 
 	ctx := snow.DefaultContextTest()
-	ctx.NodeID = ids.NodeIDFromCert(pTestCert.Leaf)
+	ctx.NodeID = pTestNodeID
 	ctx.StakingCertLeaf = pTestCert.Leaf
 	ctx.StakingLeafSigner = pTestCert.PrivateKey.(crypto.Signer)
 	ctx.ValidatorState = valState
@@ -528,6 +547,7 @@ func TestCoreBlockFailureCauseProposerBlockParseFailure(t *testing.T) {
 		proVM.preferred,
 		innerBlk.Timestamp(),
 		100, // pChainHeight,
+		proVM.ctx.NodeID,
 		proVM.ctx.StakingCertLeaf,
 		innerBlk.Bytes(),
 		proVM.ctx.ChainID,
@@ -573,6 +593,7 @@ func TestTwoProBlocksWrappingSameCoreBlockCanBeParsed(t *testing.T) {
 		proVM.preferred,
 		innerBlk.Timestamp(),
 		100, // pChainHeight,
+		proVM.ctx.NodeID,
 		proVM.ctx.StakingCertLeaf,
 		innerBlk.Bytes(),
 		proVM.ctx.ChainID,
@@ -594,6 +615,7 @@ func TestTwoProBlocksWrappingSameCoreBlockCanBeParsed(t *testing.T) {
 		proVM.preferred,
 		innerBlk.Timestamp(),
 		200, // pChainHeight,
+		proVM.ctx.NodeID,
 		proVM.ctx.StakingCertLeaf,
 		innerBlk.Bytes(),
 		proVM.ctx.ChainID,
@@ -944,7 +966,7 @@ func TestExpiredBuildBlock(t *testing.T) {
 	}
 
 	ctx := snow.DefaultContextTest()
-	ctx.NodeID = ids.NodeIDFromCert(pTestCert.Leaf)
+	ctx.NodeID = pTestNodeID
 	ctx.StakingCertLeaf = pTestCert.Leaf
 	ctx.StakingLeafSigner = pTestCert.PrivateKey.(crypto.Signer)
 	ctx.ValidatorState = valState
@@ -1259,7 +1281,7 @@ func TestInnerVMRollback(t *testing.T) {
 	}
 
 	ctx := snow.DefaultContextTest()
-	ctx.NodeID = ids.NodeIDFromCert(pTestCert.Leaf)
+	ctx.NodeID = pTestNodeID
 	ctx.StakingCertLeaf = pTestCert.Leaf
 	ctx.StakingLeafSigner = pTestCert.PrivateKey.(crypto.Signer)
 	ctx.ValidatorState = valState
@@ -2356,6 +2378,7 @@ func TestVMInnerBlkCache(t *testing.T) {
 		ids.GenerateTestID(),     // parent
 		time.Time{},              // timestamp
 		1,                        // pChainHeight,
+		pTestNodeID,              // nodeID
 		vm.ctx.StakingCertLeaf,   // cert
 		blkNearTipInnerBytes,     // inner blk bytes
 		vm.ctx.ChainID,           // chain ID

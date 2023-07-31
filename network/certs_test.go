@@ -1,3 +1,13 @@
+// Copyright (C) 2022, Chain4Travel AG. All rights reserved.
+//
+// This file is a derived work, based on ava-labs code whose
+// original notices appear below.
+//
+// It is distributed under the same license conditions as the
+// original code from which it is derived.
+//
+// Much love to the original authors for their work.
+// **********************************************************
 // Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
@@ -35,5 +45,10 @@ func getTLS(t *testing.T, index int) (ids.NodeID, *tls.Certificate, *tls.Config)
 	}
 
 	cert := tlsCerts[index]
-	return ids.NodeIDFromCert(cert.Leaf), cert, tlsConfigs[index]
+	nodeID, err := peer.CertToID(cert.Leaf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return nodeID, cert, tlsConfigs[index]
 }
